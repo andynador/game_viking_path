@@ -3,6 +3,8 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/andynador/game_viking_path/handlers"
+	"github.com/andynador/game_viking_path/service"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,6 +12,8 @@ import (
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
+
+var bot service.Bot
 
 func main() {
 	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
@@ -49,5 +53,9 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
-	fmt.Println(update.Message.Chat.ID)
+	if update.Message.Text == "/start" {
+		handler := handlers.NewStartHandler(bot)
+		handler.Handle(update)
+	}
+	fmt.Println(update.Message.Text)
 }
