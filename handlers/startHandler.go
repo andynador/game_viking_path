@@ -1,16 +1,15 @@
 package handlers
 
 import (
-	"github.com/andynador/game_viking_path/service"
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
 type StartHandler struct {
-	bot service.Bot
+	bot *tgbotapi.BotAPI
 }
 
-func NewStartHandler(bot service.Bot) StartHandler {
-	return StartHandler{
+func NewStartHandler(bot *tgbotapi.BotAPI) *StartHandler {
+	return &StartHandler{
 		bot: bot,
 	}
 }

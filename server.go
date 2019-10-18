@@ -13,30 +13,25 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
-var bot service.Bot
-
 func main() {
-	bot, err := tgbotapi.NewBotAPI(os.Getenv("BOT_TOKEN"))
+	err := service.Init(os.Getenv("BOT_TOKEN"))
+
+	service.Bot.Debug = true
+
+	log.Printf("Authorized on account %s", service.Bot.Self.UserName)
+
+	_, err = service.Bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("BOT_WEBHOOK_HOST") + "/" + service.Bot.Token + "/webhook"))
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	bot.Debug = true
-
-	log.Printf("Authorized on account %s", bot.Self.UserName)
-
-	_, err = bot.SetWebhook(tgbotapi.NewWebhook(os.Getenv("BOT_WEBHOOK_HOST") + "/" + bot.Token + "/webhook"))
-	if err != nil {
-		log.Fatal(err)
-	}
-	info, err := bot.GetWebhookInfo()
+	info, err := service.Bot.GetWebhookInfo()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if info.LastErrorDate != 0 {
 		log.Printf("Telegram callback failed: %s", info.LastErrorMessage)
 	}
-	http.HandleFunc("/" + bot.Token + "/webhook", handlerWebhook)
+	http.HandleFunc("/" + service.Bot.Token + "/webhook", handlerWebhook)
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8081", nil)
 }
@@ -54,7 +49,7 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
 	if update.Message.Text == "/start" {
-		handler := handlers.NewStartHandler(bot)
+		handler := handlers.NewStartHandler(service.Bot)
 		handler.Handle(update)
 	}
 	fmt.Println(update.Message.Text)

@@ -2,6 +2,17 @@ package service
 
 import "github.com/go-telegram-bot-api/telegram-bot-api"
 
-type Bot interface {
-	Send(c tgbotapi.Chattable) (tgbotapi.Message, error)
+var (
+	Bot *tgbotapi.BotAPI
+)
+
+func Init(token string) error {
+	var err error
+	Bot, err = tgbotapi.NewBotAPI(token)
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
+
