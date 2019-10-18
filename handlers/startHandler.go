@@ -1,19 +1,16 @@
 package handlers
 
 import (
-	"github.com/go-telegram-bot-api/telegram-bot-api"
+	"github.com/andynador/game_viking_path/service/bot"
 )
 
 type StartHandler struct {
-	bot *tgbotapi.BotAPI
 }
 
-func NewStartHandler(bot *tgbotapi.BotAPI) *StartHandler {
-	return &StartHandler{
-		bot: bot,
-	}
+func NewStartHandler() *StartHandler {
+	return &StartHandler{}
 }
 
-func (handler StartHandler) Handle(update tgbotapi.Update) {
-	handler.bot.Send(tgbotapi.NewMessage(update.Message.Chat.ID, "Привет, Викинг!"))
+func (handler StartHandler) Handle(update bot.Update) {
+	bot.Send(update)
 }
