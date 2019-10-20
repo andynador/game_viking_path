@@ -1,4 +1,4 @@
-module game_viking_path
+module github.com/andynador/game_viking_path
 
 go 1.13
 

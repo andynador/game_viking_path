@@ -3,8 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/andynador/game_viking_path/handlers"
-	"github.com/andynador/game_viking_path/service/bot"
+	"github.com/andynador/game_viking_path/app/adapters"
+	"github.com/andynador/game_viking_path/app/handlers"
+	"github.com/andynador/game_viking_path/app/models"
+	"github.com/andynador/game_viking_path/app/services"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -13,30 +15,37 @@ import (
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
 
+var (
+	botService   *services.BotService
+	startHandler *handlers.StartHandler
+)
+
 func main() {
+	var err error
 	token := os.Getenv("BOT_TOKEN")
 
-	err := bot.Init(token)
+	bot, err := tgbotapi.NewBotAPI(token)
 	if err != nil {
 		log.Fatal(err)
 	}
+	botService = services.NewBotService(adapters.NewTgBotApiAdapter(bot))
 
-	bot.SetDebug(true)
+	botService.SetDebug(true)
 
-	log.Printf("Authorized on account %s", bot.GetUserName())
+	log.Printf("Authorized on account %s", botService.GetUserName())
 
-	err = bot.SetWebhook(os.Getenv("BOT_WEBHOOK_HOST") + "/" + token + "/webhook")
+	err = botService.SetWebhook(os.Getenv("BOT_WEBHOOK_HOST") + "/" + token + "/webhook")
 	if err != nil {
 		log.Fatal(err)
 	}
-	info, err := bot.GetWebhookInfo()
+	info, err := botService.GetWebhookInfo()
 	if err != nil {
 		log.Fatal(err)
 	}
 	if info.GetLastErrorDate() != 0 {
 		log.Printf("Telegram callback failed: %d", info.GetLastErrorDate())
 	}
-	http.HandleFunc("/" + token + "/webhook", handlerWebhook)
+	http.HandleFunc("/"+token+"/webhook", handlerWebhook)
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8081", nil)
 }
@@ -54,8 +63,10 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
 	if update.Message.Text == "/start" {
-		handler := handlers.NewStartHandler()
-		handler.Handle(bot.NewUpdate(update.Message.Chat.ID, "Привет, Викинг!"))
+		if startHandler == nil {
+			startHandler = handlers.NewStartHandler(botService)
+		}
+		startHandler.Handle(models.NewUpdate(update.Message.Chat.ID, nil))
 	}
 	fmt.Println(update.Message.Text)
 }
