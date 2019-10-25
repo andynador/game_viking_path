@@ -15,7 +15,16 @@ func NewStartHandler(botService *services.BotService) *StartHandler {
 	}
 }
 
-func (handler StartHandler) Handle(update models.Update) {
-	str := "Привет, Викинг!"
-	handler.botService.Send(models.NewUpdate(update.GetChatID(), &str))
+func (handler StartHandler) Handle(update *models.Update) {
+	handler.botService.Send(
+		update.
+			SetText("Привет, Викинг!").
+			SetUpdateType(models.MESSAGE_WITH_KEYBOARD).
+			AddKeyboardRows(models.NewKeyboardButtonRow(
+				models.NewKeyboardButton("adsf"),
+				models.NewKeyboardButton("a111"),
+			)).
+			AddKeyboardRows(models.NewKeyboardButtonRow(
+				models.NewKeyboardButton("adsf"),
+			)))
 }

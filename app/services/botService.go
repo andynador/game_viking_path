@@ -31,6 +31,6 @@ func (botService *BotService) GetWebhookInfo() (models.WebhookInfo, error) {
 	return botService.botAdapter.GetWebhookInfo()
 }
 
-func (botService *BotService) Send(update models.Update) error {
+func (botService *BotService) Send(update *models.Update) error {
 	return botService.botAdapter.Send(update)
 }

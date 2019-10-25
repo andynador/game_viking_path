@@ -66,7 +66,7 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 		if startHandler == nil {
 			startHandler = handlers.NewStartHandler(botService)
 		}
-		startHandler.Handle(models.NewUpdate(update.Message.Chat.ID, nil))
+		startHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
 	}
 	fmt.Println(update.Message.Text)
 }
