@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"github.com/andynador/game_viking_path/app/adapters"
 	"github.com/andynador/game_viking_path/app/handlers"
+	"github.com/andynador/game_viking_path/app/interfaces"
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/go-telegram-bot-api/telegram-bot-api"
 )
@@ -21,10 +23,14 @@ var (
 	islandHandler    *handlers.IslandHandler
 	viewSquadHandler *handlers.ViewSquadHandler
 	hireSquadHandler *handlers.HireSquadHandler
+	warriorHandler   *handlers.WarriorHandler
+	users            map[int]*models.User
 )
 
 func main() {
 	var err error
+	users = make(map[int]*models.User, 0)
+	models.InitWarriors()
 	token := os.Getenv("BOT_TOKEN")
 
 	bot, err := tgbotapi.NewBotAPI(token)
@@ -65,30 +71,62 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
+
+	commandHandler := getCommandHandler(update)
+	if commandHandler != nil {
+		commandHandler.Handle(models.NewUpdate(update.Message.Chat.ID).SetText(update.Message.Text), getUser(update))
+	}
+
+	fmt.Println(fmt.Sprintf("%+v", update.Message.From))
+}
+
+func getCommandHandler(update tgbotapi.Update) interfaces.HandlerInterface {
 	if update.Message.Text == handlers.COMMAND_START {
 		if startHandler == nil {
 			startHandler = handlers.NewStartHandler(botService)
 		}
-		startHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+
+		return startHandler
 	}
+
 	if update.Message.Text == handlers.COMMAND_ISLAND {
 		if islandHandler == nil {
 			islandHandler = handlers.NewIslandHandler(botService)
 		}
-		islandHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+
+		return islandHandler
 	}
+
 	if update.Message.Text == handlers.COMMAND_VIEW_SQUAD {
 		if viewSquadHandler == nil {
 			viewSquadHandler = handlers.NewViewSquadHandler(botService)
 		}
-		viewSquadHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+
+		return viewSquadHandler
 	}
+
 	if update.Message.Text == handlers.COMMAND_HIRE_SQUAD {
 		if hireSquadHandler == nil {
 			hireSquadHandler = handlers.NewHireSquadHandler(botService)
 		}
-		hireSquadHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+		return hireSquadHandler
 	}
 
-	fmt.Println(update.Message.Text)
+	if strings.Index(update.Message.Text, handlers.COMMAND_WARRIOR) == 0 {
+		if warriorHandler == nil {
+			warriorHandler = handlers.NewWarriorHandler(botService)
+		}
+		return warriorHandler
+	}
+
+	return nil
+}
+
+func getUser(update tgbotapi.Update) *models.User {
+	if user, ok := users[update.Message.From.ID]; ok {
+		return user
+	}
+	users[update.Message.From.ID] = models.NewUser(update.Message.From.ID, update.Message.From.UserName)
+
+	return users[update.Message.From.ID]
 }

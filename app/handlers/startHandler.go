@@ -17,7 +17,7 @@ func NewStartHandler(botService *services.BotService) *StartHandler {
 	}
 }
 
-func (handler StartHandler) Handle(update *models.Update) {
+func (handler StartHandler) Handle(update *models.Update, user *models.User) {
 	handler.botService.Send(
 		update.
 			SetText("Привет, Викинг! Для начала, ты можешь осмотреть свой остров /island").
