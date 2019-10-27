@@ -5,6 +5,8 @@ import (
 	"github.com/andynador/game_viking_path/app/services"
 )
 
+const COMMAND_START = "/start"
+
 type StartHandler struct {
 	botService *services.BotService
 }
@@ -18,13 +20,6 @@ func NewStartHandler(botService *services.BotService) *StartHandler {
 func (handler StartHandler) Handle(update *models.Update) {
 	handler.botService.Send(
 		update.
-			SetText("Привет, Викинг!").
-			SetUpdateType(models.MESSAGE_WITH_KEYBOARD).
-			AddKeyboardRows(models.NewKeyboardButtonRow(
-				models.NewKeyboardButton("adsf"),
-				models.NewKeyboardButton("a111"),
-			)).
-			AddKeyboardRows(models.NewKeyboardButtonRow(
-				models.NewKeyboardButton("adsf"),
-			)))
+			SetText("Привет, Викинг! Для начала, ты можешь осмотреть свой остров /island").
+			SetUpdateType(models.MESSAGE_SIMPLE))
 }

@@ -41,20 +41,18 @@ func (adapter TgBotApiAdapter) Send(update *models.Update) error {
 		msg.ReplyMarkup = adapter.getReplyKeyboard(update)
 	}
 
-	_ , err := adapter.tgBotApi.Send(msg)
+	_, err := adapter.tgBotApi.Send(msg)
 
 	return err
 }
-
 
 func (adapter TgBotApiAdapter) getReplyKeyboard(update *models.Update) tgbotapi.ReplyKeyboardMarkup {
 	keyboardRows := update.GetKeyboardRows()
 	keyboardButtonRows := make([][]tgbotapi.KeyboardButton, len(keyboardRows))
 	for i, row := range keyboardRows {
-		keyboardButtonRows[i] = make([]tgbotapi.KeyboardButton, len(row))
 		keyboardButtonRow := make([]tgbotapi.KeyboardButton, len(row))
-		for _, button := range row {
-			keyboardButtonRow = append(keyboardButtonRow, tgbotapi.NewKeyboardButton(button.GetText()))
+		for j, button := range row {
+			keyboardButtonRow[j] = tgbotapi.NewKeyboardButton(button.GetText())
 		}
 		keyboardButtonRows[i] = tgbotapi.NewKeyboardButtonRow(keyboardButtonRow...)
 	}

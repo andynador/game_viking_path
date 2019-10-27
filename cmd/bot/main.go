@@ -16,8 +16,11 @@ import (
 )
 
 var (
-	botService   *services.BotService
-	startHandler *handlers.StartHandler
+	botService       *services.BotService
+	startHandler     *handlers.StartHandler
+	islandHandler    *handlers.IslandHandler
+	viewSquadHandler *handlers.ViewSquadHandler
+	hireSquadHandler *handlers.HireSquadHandler
 )
 
 func main() {
@@ -62,11 +65,30 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 	}
 	var update tgbotapi.Update
 	json.Unmarshal(bytes, &update)
-	if update.Message.Text == "/start" {
+	if update.Message.Text == handlers.COMMAND_START {
 		if startHandler == nil {
 			startHandler = handlers.NewStartHandler(botService)
 		}
 		startHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
 	}
+	if update.Message.Text == handlers.COMMAND_ISLAND {
+		if islandHandler == nil {
+			islandHandler = handlers.NewIslandHandler(botService)
+		}
+		islandHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+	}
+	if update.Message.Text == handlers.COMMAND_VIEW_SQUAD {
+		if viewSquadHandler == nil {
+			viewSquadHandler = handlers.NewViewSquadHandler(botService)
+		}
+		viewSquadHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+	}
+	if update.Message.Text == handlers.COMMAND_HIRE_SQUAD {
+		if hireSquadHandler == nil {
+			hireSquadHandler = handlers.NewHireSquadHandler(botService)
+		}
+		hireSquadHandler.Handle(models.NewUpdate(update.Message.Chat.ID))
+	}
+
 	fmt.Println(update.Message.Text)
 }
