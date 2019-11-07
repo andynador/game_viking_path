@@ -24,6 +24,7 @@ var (
 	viewSquadHandler *handlers.ViewSquadHandler
 	hireSquadHandler *handlers.HireSquadHandler
 	warriorHandler   *handlers.WarriorHandler
+	invasionHandler  *handlers.InvasionHandler
 	users            map[int]*models.User
 )
 
@@ -117,6 +118,13 @@ func getCommandHandler(update tgbotapi.Update) interfaces.HandlerInterface {
 			warriorHandler = handlers.NewWarriorHandler(botService)
 		}
 		return warriorHandler
+	}
+
+	if update.Message.Text == handlers.COMMAND_INVASION {
+		if invasionHandler == nil {
+			invasionHandler = handlers.NewInvasionHandler(botService)
+		}
+		return invasionHandler
 	}
 
 	return nil

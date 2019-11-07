@@ -27,5 +27,8 @@ func (handler IslandHandler) Handle(update *models.Update, user *models.User) {
 			)).
 			AddKeyboardRows(models.NewKeyboardButtonRow(
 				models.NewKeyboardButton(COMMAND_HIRE_SQUAD),
+			)).
+			AddKeyboardRows(models.NewKeyboardButtonRow(
+				models.NewKeyboardButton(COMMAND_INVASION),
 			)))
 }
