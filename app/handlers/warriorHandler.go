@@ -19,21 +19,29 @@ func NewWarriorHandler(botService *services.BotService) *WarriorHandler {
 	}
 }
 
-func (handler WarriorHandler) Handle(update *models.Update, user *models.User) {
-	text := strings.Replace(update.GetText(), COMMAND_WARRIOR, "", 1)
+func (handler WarriorHandler) Handle(gameContext *models.GameContext) {
+	warriors := gameContext.GetUser().GetWarriors()
+	if len(warriors) == 1 {
+		handler.botService.Send(
+			gameContext.GetUpdate().
+				SetText("У тебя уже есть один воин, больше нельзя").
+				SetUpdateType(models.MESSAGE_SIMPLE))
+		return
+	}
+	text := strings.Replace(gameContext.GetUpdate().GetText(), COMMAND_WARRIOR, "", 1)
 	id, _ := strconv.Atoi(text)
 	warrior := models.GetWarrior(id)
 	if warrior == nil {
 		handler.botService.Send(
-			update.
+			gameContext.GetUpdate().
 				SetText("Этот воин нам неизвестен").
 				SetUpdateType(models.MESSAGE_SIMPLE))
 		return
 	}
-	user.AddWarrior(warrior)
+	gameContext.GetUser().AddWarrior(warrior)
 
 	handler.botService.Send(
-		update.
+		gameContext.GetUpdate().
 			SetText("Воин " + warrior.GetName() + " нанят!").
 			SetUpdateType(models.MESSAGE_SIMPLE))
 }

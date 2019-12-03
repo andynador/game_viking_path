@@ -18,13 +18,13 @@ func NewHireSquadHandler(botService *services.BotService) *HireSquadHandler {
 	}
 }
 
-func (handler HireSquadHandler) Handle(update *models.Update, user *models.User) {
+func (handler HireSquadHandler) Handle(gameContext *models.GameContext) {
 	var text string
 	for _, warrior := range models.GetWarriors() {
-		text = text + warrior.GetName() + " " + COMMAND_WARRIOR + strconv.Itoa(warrior.GetID()) + "\n"
+		text = text + warrior.GetName() + ", оружие: " + warrior.GetWeapon().GetName() + " " + COMMAND_WARRIOR + strconv.Itoa(warrior.GetID()) + "\n"
 	}
 	handler.botService.Send(
-		update.
+		gameContext.GetUpdate().
 			SetText(text).
 			SetUpdateType(models.MESSAGE_SIMPLE))
 }

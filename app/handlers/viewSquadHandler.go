@@ -17,11 +17,11 @@ func NewViewSquadHandler(botService *services.BotService) *ViewSquadHandler {
 	}
 }
 
-func (handler ViewSquadHandler) Handle(update *models.Update, user *models.User) {
-	warriors := user.GetWarriors()
+func (handler ViewSquadHandler) Handle(gameContext *models.GameContext) {
+	warriors := gameContext.GetUser().GetWarriors()
 	if len(warriors) == 0 {
 		handler.botService.Send(
-			update.
+			gameContext.GetUpdate().
 				SetText("У тебя пока нет ни одного война").
 				SetUpdateType(models.MESSAGE_SIMPLE))
 		return
@@ -32,7 +32,7 @@ func (handler ViewSquadHandler) Handle(update *models.Update, user *models.User)
 	}
 
 	handler.botService.Send(
-		update.
+		gameContext.GetUpdate().
 			SetText("Вот твои войны: \n" + text).
 			SetUpdateType(models.MESSAGE_SIMPLE))
 }

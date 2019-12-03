@@ -5,5 +5,5 @@ import (
 )
 
 type HandlerInterface interface {
-	Handle(update *models.Update, user *models.User)
+	Handle(gameContext *models.GameContext)
 }

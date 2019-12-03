@@ -25,13 +25,16 @@ var (
 	hireSquadHandler *handlers.HireSquadHandler
 	warriorHandler   *handlers.WarriorHandler
 	invasionHandler  *handlers.InvasionHandler
+	fightHandler  *handlers.FightHandler
 	users            map[int]*models.User
+	gameContext *models.GameContext
 )
 
 func main() {
 	var err error
 	users = make(map[int]*models.User, 0)
 	models.InitWarriors()
+	initGameContext()
 	token := os.Getenv("BOT_TOKEN")
 
 	bot, err := tgbotapi.NewBotAPI(token)
@@ -75,7 +78,10 @@ func handlerWebhook(w http.ResponseWriter, r *http.Request) {
 
 	commandHandler := getCommandHandler(update)
 	if commandHandler != nil {
-		commandHandler.Handle(models.NewUpdate(update.Message.Chat.ID).SetText(update.Message.Text), getUser(update))
+		gameContext = gameContext.SetUpdate(
+			models.NewUpdate(update.Message.Chat.ID).SetText(update.Message.Text),
+		).SetUser(getUser(update))
+		go commandHandler.Handle(gameContext)
 	}
 
 	fmt.Println(fmt.Sprintf("%+v", update.Message.From))
@@ -127,6 +133,13 @@ func getCommandHandler(update tgbotapi.Update) interfaces.HandlerInterface {
 		return invasionHandler
 	}
 
+	if update.Message.Text == handlers.COMMAND_START_FIGHT {
+		if fightHandler == nil {
+			fightHandler = handlers.NewFightHandler(botService)
+		}
+		return fightHandler
+	}
+
 	return nil
 }
 
@@ -137,4 +150,8 @@ func getUser(update tgbotapi.Update) *models.User {
 	users[update.Message.From.ID] = models.NewUser(update.Message.From.ID, update.Message.From.UserName)
 
 	return users[update.Message.From.ID]
+}
+
+func initGameContext() {
+	gameContext = models.NewGameContext()
 }

@@ -18,18 +18,49 @@ func NewInvasionHandler(botService *services.BotService) *InvasionHandler {
 	}
 }
 
-func (handler InvasionHandler) Handle(update *models.Update, user *models.User) {
-	warriors := user.GetWarriors()
+func (handler InvasionHandler) Handle(gameContext *models.GameContext) {
+	var text string
+	warriors := gameContext.GetUser().GetWarriors()
 	if len(warriors) == 0 {
 		handler.botService.Send(
-			update.
+			gameContext.GetUpdate().
 				SetText("У тебя пока нет ни одного война").
 				SetUpdateType(models.MESSAGE_SIMPLE))
 		return
 	}
-	time.Sleep(10 * time.Second)
 	handler.botService.Send(
-			update.
-				SetText("Подождали 10 секунд").
+			gameContext.GetUpdate().
+				SetText("Плывём 10 секунд...").
 				SetUpdateType(models.MESSAGE_SIMPLE))
+	time.Sleep(10 * time.Second)
+	enemyIsland := newEnemyIsland(gameContext.GetUser())
+	for _, warrior := range enemyIsland.GetWarriors() {
+		text = text + warrior.GetName() + ", оружие: " + warrior.GetWeapon().GetName() + "\n"
+	}
+	gameContext = gameContext.SetEnemyIsland(enemyIsland)
+	handler.botService.Send(
+		gameContext.GetUpdate().
+			SetText("Доплыли, здесь сидят \n" + text + "\n Сражаемся?").
+			SetUpdateType(models.MESSAGE_WITH_KEYBOARD).
+			AddKeyboardRows(models.NewKeyboardButtonRow(
+				models.NewKeyboardButton(COMMAND_START_FIGHT),
+				models.NewKeyboardButton(COMMAND_SKIP_FIGHT),
+			)))
+}
+
+func newEnemyIsland(user *models.User) *models.EnemyIsland {
+	enemyIsland := models.NewEnemyIsland(1)
+	allWarriors := models.GetWarriors()
+	userWarriors := user.GetWarriors()
+
+	for _, allWarrior := range allWarriors {
+		for _, userWarrior := range userWarriors {
+			if allWarrior.GetID() == userWarrior.GetID() {
+				continue
+			}
+			return enemyIsland.AddWarrior(allWarrior)
+		}
+	}
+
+	return enemyIsland
 }

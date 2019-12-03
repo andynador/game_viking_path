@@ -17,9 +17,9 @@ func NewIslandHandler(botService *services.BotService) *IslandHandler {
 	}
 }
 
-func (handler IslandHandler) Handle(update *models.Update, user *models.User) {
+func (handler IslandHandler) Handle(gameContext *models.GameContext) {
 	handler.botService.Send(
-		update.
+		gameContext.GetUpdate().
 			SetText("Смотрим остров:").
 			SetUpdateType(models.MESSAGE_WITH_KEYBOARD).
 			AddKeyboardRows(models.NewKeyboardButtonRow(
