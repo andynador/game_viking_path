@@ -9,10 +9,10 @@ const (
 type Weapon struct {
 	style string
 	name string
-	damangeValue int
+	damangeValue float32
 }
 
-func NewWeapon(style string, name string, damangeValue int) *Weapon {
+func NewWeapon(style string, name string, damangeValue float32) *Weapon {
 	return &Weapon{
 		style:   style,
 		name: name,
@@ -28,6 +28,6 @@ func (weapon *Weapon) GetName() string {
 	return weapon.name
 }
 
-func (weapon *Weapon) GetDamageValue() int {
+func (weapon *Weapon) GetDamageValue() float32 {
 	return weapon.damangeValue
 }

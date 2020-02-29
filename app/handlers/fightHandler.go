@@ -3,7 +3,7 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
-	"strconv"
+	"fmt"
 )
 
 const (
@@ -39,27 +39,44 @@ func (handler FightHandler) Handle(gameContext *models.GameContext) {
 		return
 	}
 	enemyIndex := 0
-	for _, warrior := range warriors {
-		enemyWarrior := enemyIsland.GetWarriors()[enemyIndex]
-		ourWeapon := warrior.GetWeapon()
-		enemyArmor := enemyWarrior.GetArmor()
-		damageValue := 0
-		if ourWeapon.GetStyle() == enemyArmor.GetStyle() || enemyArmor.GetStyle() == models.STYLE_UNIVERSAL {
-			damageValue = enemyArmor.GetProtectionValue() - ourWeapon.GetDamageValue()
-		} else {
-			damageValue = ourWeapon.GetDamageValue()
+	enemyWarriors := enemyIsland.GetWarriors();
+	for {
+		for _, warrior := range warriors {
+			if enemyIndex > (len(enemyWarriors) - 1) {
+				enemyIndex = 0
+			}
+			damageValue := attactFirstWarriorToSecondWarrior(warrior, enemyWarriors[enemyIndex])
+			handler.processDamageValue(damageValue, warrior, gameContext)
+			damageValue = attactFirstWarriorToSecondWarrior(enemyWarriors[enemyIndex], warrior)
+			handler.processDamageValue(damageValue, enemyWarriors[enemyIndex], gameContext)
+
+			enemyIndex++
 		}
-		if damageValue >= 0 {
-			handler.botService.Send(
-				gameContext.GetUpdate().
-					SetText(warrior.GetName() + " не нанёс урона").
-					SetUpdateType(models.MESSAGE_SIMPLE))
-			} else {
-				handler.botService.Send(
-					gameContext.GetUpdate().
-						SetText(warrior.GetName() + " нанёс " + strconv.Itoa(-damageValue) + " единицы урона").
-						SetUpdateType(models.MESSAGE_SIMPLE))
-		}
-		enemyIndex++
+		break;
 	}
+}
+
+func attactFirstWarriorToSecondWarrior(firstWarrior, secondWarrior *models.Warrior) float32 {
+	firstWarriorWeapon := firstWarrior.GetWeapon()
+	secondWarriorArmor := secondWarrior.GetArmor()
+
+	if firstWarriorWeapon.GetStyle() == secondWarriorArmor.GetStyle() || secondWarriorArmor.GetStyle() == models.STYLE_UNIVERSAL {
+		return secondWarriorArmor.GetProtectionValue() - firstWarriorWeapon.GetDamageValue()
+	}
+
+	return firstWarriorWeapon.GetDamageValue()
+}
+
+func (handler FightHandler) processDamageValue(damageValue float32, warrior *models.Warrior, gameContext *models.GameContext) {
+	if damageValue >= 0 {
+		handler.sendMessage(warrior.GetName() + " не нанёс урона", gameContext)
+	} else {
+		handler.sendMessage(warrior.GetName() + " нанёс " + fmt.Sprintf("%.1f", damageValue) + " единицы урона", gameContext)
+	}
+}
+
+func (handler FightHandler) sendMessage(message string, gameContext *models.GameContext) {
+	handler.botService.Send(gameContext.GetUpdate().
+		SetText(message).
+		SetUpdateType(models.MESSAGE_SIMPLE))
 }

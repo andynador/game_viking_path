@@ -12,12 +12,12 @@ var warriors map[int]*Warrior
 type Warrior struct {
 	id   int
 	name string
-	health int
+	health float32
 	weapon *Weapon
 	armor *Armor
 }
 
-func NewWarrior(id int, name string, health int, weapon *Weapon, armor *Armor) *Warrior {
+func NewWarrior(id int, name string, health float32, weapon *Weapon, armor *Armor) *Warrior {
 	return &Warrior{
 		id:   id,
 		name: name,
@@ -35,7 +35,7 @@ func (warrior *Warrior) GetName() string {
 	return warrior.name
 }
 
-func (warrior *Warrior) GetHealth() int {
+func (warrior *Warrior) GetHealth() float32 {
 	return warrior.health
 }
 
@@ -45,6 +45,14 @@ func (warrior *Warrior) GetWeapon() *Weapon {
 
 func (warrior *Warrior) GetArmor() *Armor {
 	return warrior.armor
+}
+
+func (warrior *Warrior) SubHealth(health float32) {
+	warrior.health -= health
+}
+
+func (warrior *Warrior) IsLive() bool {
+	return warrior.health > 0
 }
 
 func InitWarriors() {
