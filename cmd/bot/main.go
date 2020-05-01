@@ -25,9 +25,9 @@ var (
 	hireSquadHandler *handlers.HireSquadHandler
 	warriorHandler   *handlers.WarriorHandler
 	invasionHandler  *handlers.InvasionHandler
-	fightHandler  *handlers.FightHandler
+	fightHandler     *handlers.FightHandler
 	users            map[int]*models.User
-	gameContext *models.GameContext
+	gameContext      *models.GameContext
 )
 
 func main() {

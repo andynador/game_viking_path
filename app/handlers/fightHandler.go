@@ -1,14 +1,14 @@
 package handlers
 
 import (
+	"fmt"
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
-	"fmt"
 )
 
 const (
 	COMMAND_START_FIGHT = "Да, сражаемся!"
-	COMMAND_SKIP_FIGHT = "Нет, не сражаемся"
+	COMMAND_SKIP_FIGHT  = "Нет, не сражаемся"
 )
 
 type FightHandler struct {
@@ -39,7 +39,7 @@ func (handler FightHandler) Handle(gameContext *models.GameContext) {
 		return
 	}
 	enemyIndex := 0
-	enemyWarriors := enemyIsland.GetWarriors();
+	enemyWarriors := enemyIsland.GetWarriors()
 	for {
 		for _, warrior := range warriors {
 			if enemyIndex > (len(enemyWarriors) - 1) {
@@ -52,7 +52,7 @@ func (handler FightHandler) Handle(gameContext *models.GameContext) {
 
 			enemyIndex++
 		}
-		break;
+		break
 	}
 }
 
@@ -69,9 +69,9 @@ func attactFirstWarriorToSecondWarrior(firstWarrior, secondWarrior *models.Warri
 
 func (handler FightHandler) processDamageValue(damageValue float32, warrior *models.Warrior, gameContext *models.GameContext) {
 	if damageValue >= 0 {
-		handler.sendMessage(warrior.GetName() + " не нанёс урона", gameContext)
+		handler.sendMessage(warrior.GetName()+" не нанёс урона", gameContext)
 	} else {
-		handler.sendMessage(warrior.GetName() + " нанёс " + fmt.Sprintf("%.1f", damageValue) + " единицы урона", gameContext)
+		handler.sendMessage(warrior.GetName()+" нанёс "+fmt.Sprintf("%.1f", damageValue)+" единицы урона", gameContext)
 	}
 }
 

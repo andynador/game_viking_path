@@ -1,10 +1,9 @@
 package models
 
 type EnemyIsland struct {
-	id int
+	id       int
 	warriors []*Warrior
 }
-
 
 func NewEnemyIsland(id int) *EnemyIsland {
 	return &EnemyIsland{

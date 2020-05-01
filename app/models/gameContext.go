@@ -1,8 +1,8 @@
 package models
 
 type GameContext struct {
-	update *Update
-	user *User
+	update      *Update
+	user        *User
 	enemyIsland *EnemyIsland
 }
 

@@ -1,29 +1,31 @@
 package models
 
+import "github.com/andynador/game_viking_path/app/models/armor"
+
 const (
-	STYLE_CHOPPING = "chopping"
-	STYLE_PRICKING = "pricking"
+	STYLE_CHOPPING   = "chopping"
+	STYLE_PRICKING   = "pricking"
 	STYLE_PERCUSSION = "percussion"
-	STYLE_UNIVERSAL = "universal"
+	STYLE_UNIVERSAL  = "universal"
 )
 
 var warriors map[int]*Warrior
 
 type Warrior struct {
-	id   int
-	name string
+	id     int
+	name   string
 	health float32
 	weapon *Weapon
-	armor *Armor
+	armor  *armor.Armor
 }
 
-func NewWarrior(id int, name string, health float32, weapon *Weapon, armor *Armor) *Warrior {
+func NewWarrior(id int, name string, health float32, weapon *Weapon, armor *armor.Armor) *Warrior {
 	return &Warrior{
-		id:   id,
-		name: name,
+		id:     id,
+		name:   name,
 		health: health,
 		weapon: weapon,
-		armor: armor,
+		armor:  armor,
 	}
 }
 
@@ -43,7 +45,7 @@ func (warrior *Warrior) GetWeapon() *Weapon {
 	return warrior.weapon
 }
 
-func (warrior *Warrior) GetArmor() *Armor {
+func (warrior *Warrior) GetArmor() *armor.Armor {
 	return warrior.armor
 }
 
@@ -58,35 +60,35 @@ func (warrior *Warrior) IsLive() bool {
 func InitWarriors() {
 	warriors = make(map[int]*Warrior, 0)
 
-	warriors[1] = NewWarrior(1, 
-		"Харольд Большая секира", 
-		50, 
-		NewWeapon(STYLE_CHOPPING, 
-			WEAPON_NAME_AX, 
+	warriors[1] = NewWarrior(1,
+		"Харольд Большая секира",
+		50,
+		NewWeapon(STYLE_CHOPPING,
+			WEAPON_NAME_AX,
 			5,
 		),
-		NewArmor(STYLE_UNIVERSAL, 2),
+		armor.New(STYLE_UNIVERSAL, 2),
 	)
 
-	warriors[2] = NewWarrior(2, 
-		"Олав Рыжая борода", 
-		40, 
-		NewWeapon(STYLE_PRICKING, 
-			WEAPON_NAME_SPEAR, 
+	warriors[2] = NewWarrior(2,
+		"Олав Рыжая борода",
+		40,
+		NewWeapon(STYLE_PRICKING,
+			WEAPON_NAME_SPEAR,
 			3,
 		),
-		NewArmor(STYLE_CHOPPING, 5),
+		armor.New(STYLE_CHOPPING, 5),
 	)
 
 	warriors[3] = NewWarrior(
-		3, 
-		"Хакон Длинный язык", 
+		3,
+		"Хакон Длинный язык",
 		45,
-		NewWeapon(STYLE_PRICKING, 
-			WEAPON_NAME_BATON, 
+		NewWeapon(STYLE_PRICKING,
+			WEAPON_NAME_BATON,
 			3,
 		),
-		NewArmor(STYLE_CHOPPING, 4),
+		armor.New(STYLE_CHOPPING, 4),
 	)
 }
 

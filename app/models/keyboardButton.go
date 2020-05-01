@@ -12,7 +12,7 @@ func NewKeyboardButton(text string) KeyboardButton {
 	}
 }
 
-func (KeyboardButton KeyboardButton) GetText() string  {
+func (KeyboardButton KeyboardButton) GetText() string {
 	return KeyboardButton.text
 }
 
@@ -23,4 +23,3 @@ func NewKeyboardButtonRow(buttons ...KeyboardButton) []KeyboardButton {
 
 	return row
 }
-

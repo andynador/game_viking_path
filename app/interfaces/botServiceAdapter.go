@@ -10,4 +10,5 @@ type BotServiceAdapter interface {
 	SetWebhook(url string) error
 	GetWebhookInfo() (models.WebhookInfo, error)
 	Send(update *models.Update) error
+	Send(update *models.Update) error
 }

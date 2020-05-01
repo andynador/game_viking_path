@@ -1,21 +1,21 @@
 package models
 
 const (
-	WEAPON_NAME_AX = "секира"
+	WEAPON_NAME_AX    = "секира"
 	WEAPON_NAME_SPEAR = "копье"
 	WEAPON_NAME_BATON = "дубина"
 )
 
 type Weapon struct {
-	style string
-	name string
+	style        string
+	name         string
 	damangeValue float32
 }
 
 func NewWeapon(style string, name string, damangeValue float32) *Weapon {
 	return &Weapon{
-		style:   style,
-		name: name,
+		style:        style,
+		name:         name,
 		damangeValue: damangeValue,
 	}
 }

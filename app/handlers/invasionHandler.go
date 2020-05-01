@@ -29,9 +29,9 @@ func (handler InvasionHandler) Handle(gameContext *models.GameContext) {
 		return
 	}
 	handler.botService.Send(
-			gameContext.GetUpdate().
-				SetText("Плывём 10 секунд...").
-				SetUpdateType(models.MESSAGE_SIMPLE))
+		gameContext.GetUpdate().
+			SetText("Плывём 10 секунд...").
+			SetUpdateType(models.MESSAGE_SIMPLE))
 	time.Sleep(10 * time.Second)
 	enemyIsland := newEnemyIsland(gameContext.GetUser())
 	for _, warrior := range enemyIsland.GetWarriors() {

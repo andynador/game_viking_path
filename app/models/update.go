@@ -11,7 +11,7 @@ type Update struct {
 
 func NewUpdate(chatID int64) *Update {
 	return &Update{
-		chatID:     chatID,
+		chatID: chatID,
 	}
 }
 
@@ -33,7 +33,7 @@ func (update *Update) AddKeyboardRows(rows ...[]KeyboardButton) *Update {
 	return update
 }
 
-func (update *Update) GetKeyboardRows() [][]KeyboardButton  {
+func (update *Update) GetKeyboardRows() [][]KeyboardButton {
 	return update.keyboard
 }
 

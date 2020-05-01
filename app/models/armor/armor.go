@@ -1,13 +1,13 @@
-package models
+package armor
 
 type Armor struct {
-	style string
+	style           string
 	protectionValue float32
 }
 
-func NewArmor(style string, protectionValue float32) *Armor {
+func New(style string, protectionValue float32) *Armor {
 	return &Armor{
-		style:   style,
+		style:           style,
 		protectionValue: protectionValue,
 	}
 }
