@@ -10,7 +10,9 @@ import (
 
 func main()  {
 	var (
-		id int
+		warriorId int
+		weaponId int
+		armorId int
 	)
 	p, err := preferences.Get()
 	if err != nil {
@@ -27,13 +29,134 @@ func main()  {
 		fmt.Println(fmt.Sprintf("Ошибка подключения к БД: %s", err.Error()))
 		os.Exit(1)
 	}
-	var values []interface{}
-	values = append(values, "Харольд Большая секира", 50)
 
-	err = db.GetConnection().QueryRow("INSERT INTO warrior(name, health_value) VALUES($1, $2) returning id", values...).Scan(&id)
+	err = db.GetConnection().QueryRow("select id from weapon where name = $1", "Секира").Scan(&weaponId)
 	if err != nil && err != sql.ErrNoRows {
-		fmt.Println(fmt.Sprintf("Ошибка вставки в БД: %s", err.Error()))
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
 		os.Exit(1)
 	}
-	fmt.Println(id)
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Секира", "chopping", 5).Scan(&weaponId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "universal", 2).Scan(&armorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "universal", 2).Scan(&armorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from warrior where name = $1", "Харольд Большая секира").Scan(&warriorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into warrior(name, health_value, weapon_id, armor_id) values($1, $2, $3, $4) returning id", "Харольд Большая секира", 50, weaponId, armorId).Scan(&warriorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+
+
+	err = db.GetConnection().QueryRow("select id from weapon where name = $1", "Копьё").Scan(&weaponId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Копьё", "pricking", 3).Scan(&weaponId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "chopping", 5).Scan(&armorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "chopping", 5).Scan(&armorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from warrior where name = $1", "Олав Рыжая борода").Scan(&warriorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into warrior(name, health_value, weapon_id, armor_id) values($1, $2, $3, $4) returning id", "Олав Рыжая борода", 40, weaponId, armorId).Scan(&warriorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+
+
+	err = db.GetConnection().QueryRow("select id from weapon where name = $1", "Дубина").Scan(&weaponId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Дубина", "pricking", 3).Scan(&weaponId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "chopping", 4).Scan(&armorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "chopping", 4).Scan(&armorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from warrior where name = $1", "Хакон Длинный язык").Scan(&warriorId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into warrior(name, health_value, weapon_id, armor_id) values($1, $2, $3, $4) returning id", "Хакон Длинный язык", 45, weaponId, armorId).Scan(&warriorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
 }
