@@ -1,8 +1,11 @@
 create table users
 (
   id serial primary key,
+  external_id integer not null,
   login character varying(64) not null
 );
+
+alter table users add constraint users_external_id_unique unique (external_id);
 
 create table enemy_island
 (
@@ -12,7 +15,7 @@ create table enemy_island
 
 alter table enemy_island add constraint enemy_island_name_unique unique (name);
 
-create type weapon_type as enum
+create type weapon_style_type as enum
 (
   'chopping',
   'pricking',
@@ -23,13 +26,13 @@ create table weapon
 (
   id serial primary key,
   name character varying(64) not null,
-  type weapon_type not null,
+  style weapon_style_type not null,
   damage_value float not null
 );
 
 alter table weapon add constraint weapon_name_unique unique (name);
 
-create type armor_type as enum
+create type armor_style_type as enum
 (
   'chopping',
   'pricking',
@@ -39,11 +42,11 @@ create type armor_type as enum
 create table armor
 (
   id serial primary key,
-  type armor_type not null,
+  style armor_style_type not null,
   protection_value float not null
 );
 
-alter table armor add constraint armor_type_protection_value_unique unique (type, protection_value);
+alter table armor add constraint armor_style_protection_value_unique unique (style, protection_value);
 
 create table warrior
 (

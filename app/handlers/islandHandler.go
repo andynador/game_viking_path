@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
 )
 
 const COMMAND_ISLAND = "/island"
@@ -17,7 +18,7 @@ func NewIslandHandler(botService *services.BotService) *IslandHandler {
 	}
 }
 
-func (handler IslandHandler) Handle(gameContext *models.GameContext) {
+func (handler IslandHandler) Handle(gameContext *gameContext.GameContext) {
 	handler.botService.Send(
 		gameContext.GetUpdate().
 			SetText("Смотрим остров:").

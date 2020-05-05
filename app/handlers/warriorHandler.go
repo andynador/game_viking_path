@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
+	"log"
 	"strconv"
 	"strings"
 )
@@ -19,8 +21,12 @@ func NewWarriorHandler(botService *services.BotService) *WarriorHandler {
 	}
 }
 
-func (handler WarriorHandler) Handle(gameContext *models.GameContext) {
-	warriors := gameContext.GetUser().GetWarriors()
+func (handler WarriorHandler) Handle(gameContext *gameContext.GameContext) {
+	warriors, err := models.GetWarriorsByUserId(gameContext.GetDB(), gameContext.GetUser().GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	if len(warriors) == 1 {
 		handler.botService.Send(
 			gameContext.GetUpdate().
@@ -30,15 +36,23 @@ func (handler WarriorHandler) Handle(gameContext *models.GameContext) {
 	}
 	text := strings.Replace(gameContext.GetUpdate().GetText(), COMMAND_WARRIOR, "", 1)
 	id, _ := strconv.Atoi(text)
-	warrior := models.GetWarrior(id)
-	if warrior == nil {
+	warrior, isExists, err := models.GetWarriorById(gameContext.GetDB(), id)
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	if !isExists {
 		handler.botService.Send(
 			gameContext.GetUpdate().
 				SetText("Этот воин нам неизвестен").
 				SetUpdateType(models.MESSAGE_SIMPLE))
 		return
 	}
-	gameContext.GetUser().AddWarrior(warrior)
+	models.LinkWarriorToUser(gameContext.GetDB(), warrior.GetId(), gameContext.GetUser().GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 
 	handler.botService.Send(
 		gameContext.GetUpdate().

@@ -3,6 +3,7 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
 )
 
 const COMMAND_START = "/start"
@@ -17,7 +18,7 @@ func NewStartHandler(botService *services.BotService) *StartHandler {
 	}
 }
 
-func (handler StartHandler) Handle(gameContext *models.GameContext) {
+func (handler StartHandler) Handle(gameContext *gameContext.GameContext) {
 	handler.botService.Send(
 		gameContext.GetUpdate().
 			SetText("Привет, Викинг! Для начала, ты можешь осмотреть свой остров /island").

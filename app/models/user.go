@@ -1,33 +1,51 @@
 package models
 
+import (
+	"database/sql"
+	"github.com/andynador/game_viking_path/app/services/db"
+)
+
 type User struct {
-	id       int
-	login    string
-	warriors []*Warrior
+	id         int
+	externalId int
+	login      string
 }
 
-func NewUser(id int, login string) *User {
-	return &User{
-		id:       id,
-		login:    login,
-		warriors: make([]*Warrior, 0),
-	}
-}
-
-func (user *User) GetID() int {
+func (user User) GetId() int {
 	return user.id
 }
 
-func (user *User) GeLogin() string {
+func (user User) GetExternalId() int {
+	return user.externalId
+}
+
+func (user User) GeLogin() string {
 	return user.login
 }
 
-func (user *User) AddWarrior(warrior *Warrior) *User {
-	user.warriors = append(user.warriors, warrior)
+func GetUserByExternalId(db *db.Database, externalId int) (User, bool, error) {
+	var (
+		user User
+	)
+	err := db.GetConnection().QueryRow(`select users.id, users.external_id, users.login from users where external_id = $1`, externalId).Scan(&user.id, &user.externalId, &user.login)
 
-	return user
+	if err == sql.ErrNoRows {
+		return user, false, nil
+	}
+
+	if err != nil {
+		return user, false, err
+	}
+
+	return user, true, nil
 }
 
-func (user *User) GetWarriors() []*Warrior {
-	return user.warriors
+func CreateUser(db *db.Database, externalId int, login string) (User, error) {
+	user := User{externalId: externalId, login: login}
+	err := db.GetConnection().QueryRow("insert into users(external_id, login) values($1, $2) returning id", externalId, login).Scan(&user.id)
+	if err != nil && err != sql.ErrNoRows {
+		return user, err
+	}
+
+	return user, nil
 }

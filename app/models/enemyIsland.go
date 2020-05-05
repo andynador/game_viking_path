@@ -1,27 +1,32 @@
 package models
 
+import (
+	"database/sql"
+	"github.com/andynador/game_viking_path/app/services/db"
+)
+
 type EnemyIsland struct {
-	id       int
-	warriors []*Warrior
+	id   int
+	name string
 }
 
-func NewEnemyIsland(id int) *EnemyIsland {
-	return &EnemyIsland{
-		id:       id,
-		warriors: make([]*Warrior, 0),
-	}
-}
-
-func (enemyIsland *EnemyIsland) GetID() int {
+func (enemyIsland *EnemyIsland) GetId() int {
 	return enemyIsland.id
 }
 
-func (enemyIsland *EnemyIsland) AddWarrior(warrior *Warrior) *EnemyIsland {
-	enemyIsland.warriors = append(enemyIsland.warriors, warrior)
+func GetEnemyIsland(db *db.Database) (EnemyIsland, bool, error) {
+	var (
+		enemyIsland EnemyIsland
+	)
+	err := db.GetConnection().QueryRow(`select id, name from enemy_island limit 1`).Scan(&enemyIsland.id, &enemyIsland.name)
 
-	return enemyIsland
-}
+	if err == sql.ErrNoRows {
+		return enemyIsland, false, nil
+	}
 
-func (enemyIsland *EnemyIsland) GetWarriors() []*Warrior {
-	return enemyIsland.warriors
+	if err != nil {
+		return enemyIsland, false, err
+	}
+
+	return enemyIsland, true, nil
 }

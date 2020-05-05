@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
+	"log"
 	"strconv"
 )
 
@@ -18,10 +20,14 @@ func NewHireSquadHandler(botService *services.BotService) *HireSquadHandler {
 	}
 }
 
-func (handler HireSquadHandler) Handle(gameContext *models.GameContext) {
+func (handler HireSquadHandler) Handle(gameContext *gameContext.GameContext) {
 	var text string
-	for _, warrior := range models.GetWarriors() {
-		text = text + warrior.GetName() + ", оружие: " + warrior.GetWeapon().GetName() + " " + COMMAND_WARRIOR + strconv.Itoa(warrior.GetID()) + "\n"
+	warriors, err := models.GetFreeWarriors(gameContext.GetDB())
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, warrior := range warriors {
+		text = text + warrior.GetName() + ", оружие: " + warrior.GetWeapon().GetName() + " " + COMMAND_WARRIOR + strconv.Itoa(warrior.GetId()) + "\n"
 	}
 	handler.botService.Send(
 		gameContext.GetUpdate().

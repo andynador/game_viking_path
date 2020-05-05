@@ -1,4 +1,4 @@
-package armor
+package models
 
 type Armor struct {
 	style           string

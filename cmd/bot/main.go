@@ -7,7 +7,10 @@ import (
 	"github.com/andynador/game_viking_path/app/handlers"
 	"github.com/andynador/game_viking_path/app/interfaces"
 	"github.com/andynador/game_viking_path/app/models"
+	"github.com/andynador/game_viking_path/app/preferences"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/db"
+	gc "github.com/andynador/game_viking_path/app/services/gameContext"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -26,18 +29,17 @@ var (
 	warriorHandler   *handlers.WarriorHandler
 	invasionHandler  *handlers.InvasionHandler
 	fightHandler     *handlers.FightHandler
-	users            map[int]*models.User
-	gameContext      *models.GameContext
+	gameContext      *gc.GameContext
 )
 
 func main() {
 	var err error
-	users = make(map[int]*models.User, 0)
-	models.InitWarriors()
-	initGameContext()
-	token := os.Getenv("BOT_TOKEN")
+	err = initGameContext()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	bot, err := tgbotapi.NewBotAPI(token)
+	bot, err := tgbotapi.NewBotAPI(gameContext.GetPreferences().BotToken)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -47,7 +49,9 @@ func main() {
 
 	log.Printf("Authorized on account %s", botService.GetUserName())
 
-	err = botService.SetWebhook(os.Getenv("BOT_WEBHOOK_HOST") + "/" + token + "/webhook")
+	webhook := "/" + gameContext.GetPreferences().BotToken + "/webhook"
+
+	err = botService.SetWebhook(gameContext.GetPreferences().BotWebhookHost + webhook)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -58,10 +62,11 @@ func main() {
 	if info.GetLastErrorDate() != 0 {
 		log.Printf("Telegram callback failed: %d", info.GetLastErrorDate())
 	}
-	http.HandleFunc("/"+token+"/webhook", handlerWebhook)
+	http.HandleFunc(webhook, handlerWebhook)
 	http.HandleFunc("/", handler)
 	http.ListenAndServe(":8081", nil)
 }
+
 func handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, "Hello World!")
 }
@@ -143,15 +148,44 @@ func getCommandHandler(update tgbotapi.Update) interfaces.HandlerInterface {
 	return nil
 }
 
-func getUser(update tgbotapi.Update) *models.User {
-	if user, ok := users[update.Message.From.ID]; ok {
-		return user
+func getUser(update tgbotapi.Update) models.User {
+	user, isExists, err := models.GetUserByExternalId(gameContext.GetDB(), update.Message.From.ID)
+	if err != nil {
+		log.Fatal(err)
+		os.Exit(1)
 	}
-	users[update.Message.From.ID] = models.NewUser(update.Message.From.ID, update.Message.From.UserName)
+	if !isExists {
+		user, err = models.CreateUser(gameContext.GetDB(), update.Message.From.ID, update.Message.From.UserName)
+		if err != nil {
+			log.Fatal(err)
+			os.Exit(1)
+		}
+	}
 
-	return users[update.Message.From.ID]
+	return user
 }
 
-func initGameContext() {
-	gameContext = models.NewGameContext()
+func initGameContext() ( error) {
+	gameContext = gc.New()
+	p, err := preferences.Get()
+
+	if err != nil {
+		return err
+	}
+
+	db, err := db.New(p.DatabaseURL, db.Config{MaxConnLifetimeSec: p.DatabaseMaxConnLifetimeSec, MaxIdleConns: p.DatabaseMaxIdleConns, MaxOpenConns: p.DatabaseMaxOpenConns})
+
+	if err != nil {
+		return err
+	}
+
+	err = db.Connect()
+	if err != nil {
+		return err
+	}
+
+	gameContext = gameContext.SetDB(db).
+		SetPreferences(p)
+
+	return nil
 }

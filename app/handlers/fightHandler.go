@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
+	"log"
 )
 
 const (
@@ -21,8 +23,12 @@ func NewFightHandler(botService *services.BotService) *FightHandler {
 	}
 }
 
-func (handler FightHandler) Handle(gameContext *models.GameContext) {
-	warriors := gameContext.GetUser().GetWarriors()
+func (handler FightHandler) Handle(gameContext *gameContext.GameContext) {
+	warriors, err := models.GetWarriorsByUserId(gameContext.GetDB(), gameContext.GetUser().GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	if len(warriors) == 0 {
 		handler.botService.Send(
 			gameContext.GetUpdate().
@@ -39,7 +45,11 @@ func (handler FightHandler) Handle(gameContext *models.GameContext) {
 		return
 	}
 	enemyIndex := 0
-	enemyWarriors := enemyIsland.GetWarriors()
+	enemyWarriors, err := models.GetWarriorsByEnemyIslandId(gameContext.GetDB(), enemyIsland.GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	for {
 		for _, warrior := range warriors {
 			if enemyIndex > (len(enemyWarriors) - 1) {
@@ -56,7 +66,7 @@ func (handler FightHandler) Handle(gameContext *models.GameContext) {
 	}
 }
 
-func attactFirstWarriorToSecondWarrior(firstWarrior, secondWarrior *models.Warrior) float32 {
+func attactFirstWarriorToSecondWarrior(firstWarrior, secondWarrior models.Warrior) float32 {
 	firstWarriorWeapon := firstWarrior.GetWeapon()
 	secondWarriorArmor := secondWarrior.GetArmor()
 
@@ -67,7 +77,7 @@ func attactFirstWarriorToSecondWarrior(firstWarrior, secondWarrior *models.Warri
 	return firstWarriorWeapon.GetDamageValue()
 }
 
-func (handler FightHandler) processDamageValue(damageValue float32, warrior *models.Warrior, gameContext *models.GameContext) {
+func (handler FightHandler) processDamageValue(damageValue float32, warrior models.Warrior, gameContext *gameContext.GameContext) {
 	if damageValue >= 0 {
 		handler.sendMessage(warrior.GetName()+" не нанёс урона", gameContext)
 	} else {
@@ -75,7 +85,7 @@ func (handler FightHandler) processDamageValue(damageValue float32, warrior *mod
 	}
 }
 
-func (handler FightHandler) sendMessage(message string, gameContext *models.GameContext) {
+func (handler FightHandler) sendMessage(message string, gameContext *gameContext.GameContext) {
 	handler.botService.Send(gameContext.GetUpdate().
 		SetText(message).
 		SetUpdateType(models.MESSAGE_SIMPLE))

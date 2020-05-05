@@ -3,6 +3,8 @@ package handlers
 import (
 	"github.com/andynador/game_viking_path/app/models"
 	"github.com/andynador/game_viking_path/app/services"
+	"github.com/andynador/game_viking_path/app/services/gameContext"
+	"log"
 	"time"
 )
 
@@ -18,9 +20,13 @@ func NewInvasionHandler(botService *services.BotService) *InvasionHandler {
 	}
 }
 
-func (handler InvasionHandler) Handle(gameContext *models.GameContext) {
+func (handler InvasionHandler) Handle(gameContext *gameContext.GameContext) {
 	var text string
-	warriors := gameContext.GetUser().GetWarriors()
+	warriors, err := models.GetWarriorsByUserId(gameContext.GetDB(), gameContext.GetUser().GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
 	if len(warriors) == 0 {
 		handler.botService.Send(
 			gameContext.GetUpdate().
@@ -33,11 +39,20 @@ func (handler InvasionHandler) Handle(gameContext *models.GameContext) {
 			SetText("Плывём 10 секунд...").
 			SetUpdateType(models.MESSAGE_SIMPLE))
 	time.Sleep(10 * time.Second)
-	enemyIsland := newEnemyIsland(gameContext.GetUser())
-	for _, warrior := range enemyIsland.GetWarriors() {
+	enemyIsland, _, err := models.GetEnemyIsland(gameContext.GetDB())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	warriors, err = models.GetWarriorsByEnemyIslandId(gameContext.GetDB(), enemyIsland.GetId())
+	if err != nil {
+		log.Fatal(err)
+		return
+	}
+	for _, warrior := range warriors {
 		text = text + warrior.GetName() + ", оружие: " + warrior.GetWeapon().GetName() + "\n"
 	}
-	gameContext = gameContext.SetEnemyIsland(enemyIsland)
+	gameContext = gameContext.SetEnemyIsland(&enemyIsland)
 	handler.botService.Send(
 		gameContext.GetUpdate().
 			SetText("Доплыли, здесь сидят \n" + text + "\n Сражаемся?").
@@ -46,21 +61,4 @@ func (handler InvasionHandler) Handle(gameContext *models.GameContext) {
 				models.NewKeyboardButton(COMMAND_START_FIGHT),
 				models.NewKeyboardButton(COMMAND_SKIP_FIGHT),
 			)))
-}
-
-func newEnemyIsland(user *models.User) *models.EnemyIsland {
-	enemyIsland := models.NewEnemyIsland(1)
-	allWarriors := models.GetWarriors()
-	userWarriors := user.GetWarriors()
-
-	for _, allWarrior := range allWarriors {
-		for _, userWarrior := range userWarriors {
-			if allWarrior.GetID() == userWarrior.GetID() {
-				continue
-			}
-			return enemyIsland.AddWarrior(allWarrior)
-		}
-	}
-
-	return enemyIsland
 }

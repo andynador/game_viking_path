@@ -1,105 +1,194 @@
 package models
 
-import "github.com/andynador/game_viking_path/app/models/armor"
-
-const (
-	STYLE_CHOPPING   = "chopping"
-	STYLE_PRICKING   = "pricking"
-	STYLE_PERCUSSION = "percussion"
-	STYLE_UNIVERSAL  = "universal"
+import (
+	"database/sql"
+	"github.com/andynador/game_viking_path/app/services/db"
 )
 
-var warriors map[int]*Warrior
+const (
+	STYLE_UNIVERSAL = "universal"
+)
 
 type Warrior struct {
 	id     int
 	name   string
 	health float32
-	weapon *Weapon
-	armor  *armor.Armor
+	weapon Weapon
+	armor  Armor
 }
 
-func NewWarrior(id int, name string, health float32, weapon *Weapon, armor *armor.Armor) *Warrior {
-	return &Warrior{
-		id:     id,
-		name:   name,
-		health: health,
-		weapon: weapon,
-		armor:  armor,
-	}
-}
-
-func (warrior *Warrior) GetID() int {
+func (warrior Warrior) GetId() int {
 	return warrior.id
 }
 
-func (warrior *Warrior) GetName() string {
+func (warrior Warrior) GetName() string {
 	return warrior.name
 }
 
-func (warrior *Warrior) GetHealth() float32 {
+func (warrior Warrior) GetHealth() float32 {
 	return warrior.health
 }
 
-func (warrior *Warrior) GetWeapon() *Weapon {
+func (warrior Warrior) GetWeapon() Weapon {
 	return warrior.weapon
 }
 
-func (warrior *Warrior) GetArmor() *armor.Armor {
+func (warrior Warrior) GetArmor() Armor {
 	return warrior.armor
 }
 
-func (warrior *Warrior) SubHealth(health float32) {
+func (warrior Warrior) SubHealth(health float32) {
 	warrior.health -= health
 }
 
-func (warrior *Warrior) IsLive() bool {
+func (warrior Warrior) IsLive() bool {
 	return warrior.health > 0
 }
 
-func InitWarriors() {
-	warriors = make(map[int]*Warrior, 0)
-
-	warriors[1] = NewWarrior(1,
-		"Харольд Большая секира",
-		50,
-		NewWeapon(STYLE_CHOPPING,
-			WEAPON_NAME_AX,
-			5,
-		),
-		armor.New(STYLE_UNIVERSAL, 2),
+func GetWarriorById(db *db.Database, id int) (Warrior, bool, error) {
+	var (
+		warrior Warrior
 	)
+	err := db.GetConnection().QueryRow(`
+		select warrior.id, 
+			warrior.name, 
+			warrior.health_value, 
+			weapon.name, 
+			weapon.style, 
+			weapon.damage_value,
+			armor.style,
+			armor.protection_value
+		from warrior
+		inner join weapon
+			on weapon.id = warrior.weapon_id
+		inner join armor
+			on armor.id = warrior.armor_id
+		where warrior.id = $1`, id).Scan(&warrior.id, &warrior.name, &warrior.health, &warrior.weapon.name, &warrior.weapon.style, &warrior.weapon.damageValue, &warrior.armor.style, &warrior.armor.protectionValue)
 
-	warriors[2] = NewWarrior(2,
-		"Олав Рыжая борода",
-		40,
-		NewWeapon(STYLE_PRICKING,
-			WEAPON_NAME_SPEAR,
-			3,
-		),
-		armor.New(STYLE_CHOPPING, 5),
-	)
-
-	warriors[3] = NewWarrior(
-		3,
-		"Хакон Длинный язык",
-		45,
-		NewWeapon(STYLE_PRICKING,
-			WEAPON_NAME_BATON,
-			3,
-		),
-		armor.New(STYLE_CHOPPING, 4),
-	)
-}
-
-func GetWarrior(id int) *Warrior {
-	if warrior, ok := warriors[id]; ok {
-		return warrior
+	if err == sql.ErrNoRows {
+		return warrior, false, nil
 	}
 
-	return nil
+	if err != nil {
+		return warrior, false, err
+	}
+
+	return warrior, true, nil
 }
 
-func GetWarriors() map[int]*Warrior {
-	return warriors
+func LinkWarriorToUser(db *db.Database, warriorId, userId int) error {
+	_, err := db.GetConnection().Exec(`update warrior set user_id = $1 where id = $2`, &userId, &warriorId)
+
+	return err
+}
+
+func GetFreeWarriors(db *db.Database) ([]Warrior, error) {
+	var (
+		warriors []Warrior
+		warrior Warrior
+	)
+	items, err := db.GetConnection().Query(`
+		select warrior.id, 
+			warrior.name, 
+			warrior.health_value, 
+			weapon.name, 
+			weapon.style, 
+			weapon.damage_value,
+			armor.style,
+			armor.protection_value
+		from warrior
+		inner join weapon
+			on weapon.id = warrior.weapon_id
+		inner join armor
+			on armor.id = warrior.armor_id
+		where warrior.user_id is null and warrior.enemy_island_id is null`)
+
+	if err != nil {
+		return warriors, err
+	}
+	defer items.Close()
+
+	for items.Next() {
+		err = items.Scan(&warrior.id, &warrior.name, &warrior.health, &warrior.weapon.name, &warrior.weapon.style, &warrior.weapon.damageValue, &warrior.armor.style, &warrior.armor.protectionValue)
+		if err != nil {
+			return warriors, err
+		}
+		warriors = append(warriors, warrior)
+	}
+
+	return warriors, nil
+}
+
+func GetWarriorsByUserId(db *db.Database, userId int) ([]Warrior, error) {
+	var (
+		warriors []Warrior
+		warrior Warrior
+	)
+	items, err := db.GetConnection().Query(`
+		select warrior.id, 
+			warrior.name, 
+			warrior.health_value, 
+			weapon.name, 
+			weapon.style, 
+			weapon.damage_value,
+			armor.style,
+			armor.protection_value
+		from warrior
+		inner join weapon
+			on weapon.id = warrior.weapon_id
+		inner join armor
+			on armor.id = warrior.armor_id
+		where warrior.user_id = $1`, userId)
+
+	if err != nil {
+		return warriors, err
+	}
+	defer items.Close()
+
+	for items.Next() {
+		err = items.Scan(&warrior.id, &warrior.name, &warrior.health, &warrior.weapon.name, &warrior.weapon.style, &warrior.weapon.damageValue, &warrior.armor.style, &warrior.armor.protectionValue)
+		if err != nil {
+			return warriors, err
+		}
+		warriors = append(warriors, warrior)
+	}
+
+	return warriors, nil
+}
+
+func GetWarriorsByEnemyIslandId(db *db.Database, enemyIslandId int) ([]Warrior, error) {
+	var (
+		warriors []Warrior
+		warrior Warrior
+	)
+	items, err := db.GetConnection().Query(`
+		select warrior.id, 
+			warrior.name, 
+			warrior.health_value, 
+			weapon.name, 
+			weapon.style, 
+			weapon.damage_value,
+			armor.style,
+			armor.protection_value
+		from warrior
+		inner join weapon
+			on weapon.id = warrior.weapon_id
+		inner join armor
+			on armor.id = warrior.armor_id
+		where warrior.enemy_island_id = $1`, enemyIslandId)
+
+	if err != nil {
+		return warriors, err
+	}
+	defer items.Close()
+
+	for items.Next() {
+		err = items.Scan(&warrior.id, &warrior.name, &warrior.health, &warrior.weapon.name, &warrior.weapon.style, &warrior.weapon.damageValue, &warrior.armor.style, &warrior.armor.protectionValue)
+		if err != nil {
+			return warriors, err
+		}
+		warriors = append(warriors, warrior)
+	}
+
+	return warriors, nil
 }

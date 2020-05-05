@@ -13,6 +13,7 @@ func main()  {
 		warriorId int
 		weaponId int
 		armorId int
+		enemyIslandId int
 	)
 	p, err := preferences.Get()
 	if err != nil {
@@ -37,21 +38,21 @@ func main()  {
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Секира", "chopping", 5).Scan(&weaponId)
+		err = db.GetConnection().QueryRow("insert into weapon(name, style, damage_value) values($1, $2, $3) returning id", "Секира", "chopping", 5).Scan(&weaponId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
 		}
 	}
 
-	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "universal", 2).Scan(&armorId)
+	err = db.GetConnection().QueryRow("select id from armor where style = $1 and protection_value = $2", "universal", 2).Scan(&armorId)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
 		os.Exit(1)
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "universal", 2).Scan(&armorId)
+		err = db.GetConnection().QueryRow("insert into armor(style, protection_value) values($1, $2) returning id", "universal", 2).Scan(&armorId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
@@ -81,21 +82,21 @@ func main()  {
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Копьё", "pricking", 3).Scan(&weaponId)
+		err = db.GetConnection().QueryRow("insert into weapon(name, style, damage_value) values($1, $2, $3) returning id", "Копьё", "pricking", 3).Scan(&weaponId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
 		}
 	}
 
-	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "chopping", 5).Scan(&armorId)
+	err = db.GetConnection().QueryRow("select id from armor where style = $1 and protection_value = $2", "chopping", 5).Scan(&armorId)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
 		os.Exit(1)
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "chopping", 5).Scan(&armorId)
+		err = db.GetConnection().QueryRow("insert into armor(style, protection_value) values($1, $2) returning id", "chopping", 5).Scan(&armorId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
@@ -125,21 +126,35 @@ func main()  {
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into weapon(name, type, damage_value) values($1, $2, $3) returning id", "Дубина", "pricking", 3).Scan(&weaponId)
+		err = db.GetConnection().QueryRow("insert into weapon(name, style, damage_value) values($1, $2, $3) returning id", "Дубина", "pricking", 3).Scan(&weaponId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
 		}
 	}
 
-	err = db.GetConnection().QueryRow("select id from armor where type = $1 and protection_value = $2", "chopping", 4).Scan(&armorId)
+	err = db.GetConnection().QueryRow("select id from armor where style = $1 and protection_value = $2", "chopping", 4).Scan(&armorId)
 	if err != nil && err != sql.ErrNoRows {
 		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
 		os.Exit(1)
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into armor(type, protection_value) values($1, $2) returning id", "chopping", 4).Scan(&armorId)
+		err = db.GetConnection().QueryRow("insert into armor(style, protection_value) values($1, $2) returning id", "chopping", 4).Scan(&armorId)
+		if err != nil && err != sql.ErrNoRows {
+			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
+			os.Exit(1)
+		}
+	}
+
+	err = db.GetConnection().QueryRow("select id from enemy_island where name = $1", "Фюн").Scan(&enemyIslandId)
+	if err != nil && err != sql.ErrNoRows {
+		fmt.Println(fmt.Sprintf("Ошибка получения данных из БД: %s", err.Error()))
+		os.Exit(1)
+	}
+
+	if err == sql.ErrNoRows {
+		err = db.GetConnection().QueryRow("insert into enemy_island(name) values($1) returning id", "Фюн").Scan(&enemyIslandId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)
@@ -153,7 +168,7 @@ func main()  {
 	}
 
 	if err == sql.ErrNoRows {
-		err = db.GetConnection().QueryRow("insert into warrior(name, health_value, weapon_id, armor_id) values($1, $2, $3, $4) returning id", "Хакон Длинный язык", 45, weaponId, armorId).Scan(&warriorId)
+		err = db.GetConnection().QueryRow("insert into warrior(name, health_value, enemy_island_id, weapon_id, armor_id) values($1, $2, $3, $4, $5) returning id", "Хакон Длинный язык", 45, enemyIslandId, weaponId, armorId).Scan(&warriorId)
 		if err != nil && err != sql.ErrNoRows {
 			fmt.Println(fmt.Sprintf("Ошибка вставки данных в БД: %s", err.Error()))
 			os.Exit(1)

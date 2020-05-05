@@ -12,6 +12,8 @@ type Preferences struct {
 	DatabaseMaxConnLifetimeSec int    `envconfig:"DATABASE_MAX_CONN_LIFETIME_SEC"`
 	DatabaseMaxIdleConns       int    `envconfig:"DATABASE_MAX_IDLE_CONNS"`
 	DatabaseMaxOpenConns       int    `envconfig:"DATABASE_MAX_OPEN_CONNS"`
+	BotToken                   string `envconfig:"BOT_TOKEN"`
+	BotWebhookHost             string `envconfig:"BOT_WEBHOOK_HOST"`
 }
 
 func Get() (*Preferences, error) {
